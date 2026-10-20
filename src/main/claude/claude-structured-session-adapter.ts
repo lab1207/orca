@@ -45,6 +45,7 @@ import {
   settleClaudePromptFreeingChild
 } from './claude-structured-prompt-ownership'
 import { claudePromptCancelRoute } from './claude-structured-prompt-replies'
+import { claudeForkForRewind } from './claude-rewind-fork'
 import { openClaudeStructuredSession } from './claude-structured-session-open'
 
 export type { ClaudeStructuredLaunch } from './claude-structured-launch-resolution'
@@ -166,6 +167,8 @@ export class ClaudeStructuredSessionAdapter implements StructuredAgentSessionAda
   dispatch: StructuredAgentSessionAdapter['dispatch'] = (input) =>
     dispatchClaudeMessage(this.session(input.sessionId), input, this.deps.requestTimeoutMs)
 
+  // A rewind forks the kept conversation into a new session, which the next launch makes.
+  forkForRewind = claudeForkForRewind
   compact: NonNullable<StructuredAgentSessionAdapter['compact']> = (input) =>
     dispatchClaudeCommand(this.session(input.sessionId), input.command)
 
@@ -213,10 +216,7 @@ export class ClaudeStructuredSessionAdapter implements StructuredAgentSessionAda
   readCommands: NonNullable<StructuredAgentSessionAdapter['readCommands']> = (sessionId) =>
     this.sessions.get(sessionId)?.commands.commands
   readonly atRestCommands: ClaudeStructuredSessionAdapterDeps['atRestCommands']
-  holdsDispatch = (sessionId: string): boolean => {
-    const session = this.sessions.get(sessionId)
-    return session ? claudeHoldsDispatch(session) : false
-  }
+  holdsDispatch = (sessionId: string): boolean => claudeHoldsDispatch(this.sessions.get(sessionId))
   heldSends = (sessionId: string): ReadonlySet<string> | undefined => {
     const session = this.sessions.get(sessionId) ?? this.exits.get(sessionId)?.session
     const held = session && claudeHeldSends(session)

@@ -98,8 +98,8 @@ export function claudeHeldSends(session: ClaudeSession): ReadonlySet<string> {
 }
 
 /** A send the CLI took, until its echo, a terminal state or exit: the sweep must not rest its child. */
-export function claudeHoldsDispatch(session: ClaudeSession): boolean {
-  return session.dispatchWaiters.some((waiter) => waiter.commandLifecycle !== undefined)
+export function claudeHoldsDispatch(session: ClaudeSession | undefined): boolean {
+  return session?.dispatchWaiters.some((waiter) => waiter.commandLifecycle !== undefined) ?? false
 }
 
 /**
