@@ -14,6 +14,10 @@ import { getCanonicalUserDataPath } from '../persistence'
 import { getAppEnvironment } from '../../shared/app-environment'
 import { loadWslMoveFence } from '../persistence/moving-wsl-projects/wsl-move-scope-guard'
 import { runGatedWslMoveDesktopRewritePass } from '../persistence/moving-wsl-projects/wsl-move-desktop-rewrite'
+import {
+  productionWslMoveBrowserCookieCopyDependencies,
+  registerWslMoveBrowserCookieStore
+} from '../persistence/moving-wsl-projects/wsl-move-browser-cookie-store'
 import { createProfileStateStoreForStartup } from '../persistence/profile-state/profile-state-startup-authority'
 import { initializeBrowserClientHostId } from '../browser/browser-client-host-id'
 import { scheduleSecretProtectionGapReport } from '../host/deferred-secret-protection-report'
@@ -153,6 +157,9 @@ export async function initializeReadyFoundation(): Promise<void> {
   setNodeDistMirrorSettingReader(() => store.getSettings().nodeDistMirrorUrl)
   // Why before any handler or runtime: a project a WSL move is taking must never get a new terminal.
   loadWslMoveFence(getAppEnvironment().getPath('userData'))
+  registerWslMoveBrowserCookieStore(
+    productionWslMoveBrowserCookieCopyDependencies(getAppEnvironment().getPath('userData'))
+  )
   // Finishes a move that committed before a crash; gated off it does nothing, and it never throws.
   void runGatedWslMoveDesktopRewritePass({ userDataPath: getAppEnvironment().getPath('userData') })
   // Why: create pending readiness before the guard can observe the default session.
